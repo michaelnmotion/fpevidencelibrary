@@ -3,52 +3,68 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Functional Patterns Evidence – Filterable Results</title>
-  <meta name="description" content="Browse Functional Patterns results by condition, body part, age, and gender." />
+  <title>Functional Patterns | Results Library</title>
+  <meta name="description" content="Filter Functional Patterns results by condition, body part, age, and gender to find posts like yours." />
   <style>
-    :root { --bg:#0b0f10; --card:#11181c; --muted:#66737a; --text:#e6eef2; --accent:#06b6d4; --danger:#ff6363; --ok:#24d19b; }
+    :root { --bg:#0b0f10; --card:#11181c; --muted:#8a98a0; --text:#e6eef2; --accent:#06b6d4; --border:#0e1316; }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
     a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
-    .wrap { max-width:1200px; margin:0 auto; padding:24px; } header { margin-bottom:16px; }
-    h1 { font-size:26px; margin:0; letter-spacing:.2px; } .sub { color:var(--muted); margin-top:6px; }
+    .wrap { max-width:1200px; margin:0 auto; padding:24px; }
+    header { margin-bottom:16px; }
+    h1 { font-size:28px; margin:0; letter-spacing:.2px; }
+    .kicker { color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.14em; margin-top:6px; font-size:12px; }
+    .sub { color:var(--muted); margin-top:10px; line-height:1.55; }
     .filters { display:grid; grid-template-columns:1fr; gap:12px; margin:16px 0; }
-    .card { background:var(--card); border:1px solid #0e1316; border-radius:16px; padding:14px; }
-    .row { display:grid; grid-template-columns:1fr; gap:12px; } .group { display:flex; flex-direction:column; gap:8px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .row { display:grid; grid-template-columns:1fr; gap:12px; }
+    .group { display:flex; flex-direction:column; gap:8px; }
     .label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
     select, input[type="text"] { width:100%; padding:10px 12px; border-radius:12px; background:#0e1418; color:var(--text); border:1px solid #142027; outline:none; }
     select:focus, input[type="text"]:focus { border-color:var(--accent); }
     .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     .btn { appearance:none; border:1px solid #1b2a30; background:#0e1418; color:var(--text); border-radius:12px; padding:8px 10px; cursor:pointer; font-size:13px; }
-    .btn:hover { border-color:var(--accent); } .btn.small { padding:6px 8px; font-size:12px; border-radius:10px; }
-    .post-link { display:inline-block; padding:6px 10px; background:#0f1820; border:1px solid #15242b; border-radius:10px; margin-right:6px; }
+    .btn:hover { border-color:var(--accent); }
+    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:auto; }
+    table { width:100%; border-collapse:collapse; font-size:14px; min-width:820px; }
+    thead { background:#0f161a; position:sticky; top:0; z-index:2; }
+    th, td { text-align:left; padding:12px; vertical-align:top; border-bottom:1px solid var(--border); }
+    th { font-weight:600; color:#b9c9d2; cursor:pointer; user-select:none; }
+    th .sort { font-size:10px; color:var(--muted); margin-left:6px; }
+    tbody tr:hover { background:#0e1418; }
+    .muted { color:var(--muted); }
+    .caption { max-width:720px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
+    .post-link { display:inline-block; padding:6px 10px; background:#0f1820; border:1px solid #15242b; border-radius:10px; }
     .post-link:hover { background:#0f1c26; }
-    .table-wrap { background:var(--card); border:1px solid #0e1316; border-radius:16px; overflow:hidden; }
-    table { width:100%; border-collapse:collapse; font-size:14px; } thead { background:#0f161a; position:sticky; top:0; z-index:2; }
-    th, td { text-align:left; padding:12px; vertical-align:top; border-bottom:1px solid #0e1316; } th { font-weight:600; color:#b9c9d2; cursor:pointer; user-select:none; }
-    th .sort { font-size:10px; color:var(--muted); margin-left:6px; } tbody tr:hover { background:#0e1418; }
-    .muted { color:var(--muted); } .caption { max-width:720px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
-    .alert { background:#1a0f10; border:1px solid #3a1c22; color:#ffd6d6; padding:12px; border-radius:12px; margin-bottom:12px; display:none; }
-    .alert.show { display:block; } .ok { color:var(--ok); }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; padding:20px; z-index:50; }
-    .modal { background:#0f161a; border:1px solid #1a252b; border-radius:14px; width:900px; max-width:100%; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; }
-    .modal header { padding:12px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #152027; }
-    .modal header h3 { margin:0; font-size:16px; } .modal .content { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px; overflow:auto; }
-    .embed-pane { display:flex; flex-direction:column; gap:8px; } .live-embed { background:#0b1013; border:1px solid #1a2a31; border-radius:10px; padding:8px; min-height:620px; }
-    textarea.code { width:100%; min-height:140px; background:#0b1013; color:#e6eef2; border:1px solid #1a2a31; border-radius:10px; padding:8px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; }
-    .modal footer { padding:10px 12px; border-top:1px solid #152027; display:flex; gap:8px; } .modal-backdrop.show { display:flex; }
+    .footer { display:flex; align-items:center; gap:8px; color:var(--muted); padding:12px; }
+    .counter { font-weight:600; color:#d8e6ed; }
+    .pag { display:flex; gap:8px; align-items:center; margin-left:auto; }
+    .pag .btn { padding:6px 10px; }
+    .size { width:auto; }
+    .site-note { color:var(--muted); font-size:12px; margin-top:18px; line-height:1.5; }
+    .site-note strong { color:#cfe6ee; font-weight:600; }
+    /* Mobile tweaks */
+    @media (max-width: 768px) {
+      table { min-width: 520px; } /* reduce min width */
+      .caption { -webkit-line-clamp: 6; }
+      /* hide Gender (col 1) + Age (col 2) on mobile */
+      th:nth-child(1), td:nth-child(1),
+      th:nth-child(2), td:nth-child(2) { display:none; }
+    }
   </style>
-  <script async src="https://www.instagram.com/embed.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>Functional Patterns</h1>
-      <div class="sub">Filter results by <strong>condition</strong>, <strong>age</strong>, <strong>gender</strong>, and <strong>body part</strong>. Click a result to preview or open the post.</div>
+      <h1>Functional Patterns | Evidence </h1>
+      <div class="kicker">Results Library</div>
+      <div class="sub">
+        Results are scraped from the <strong>fp.evidence</strong> page. This is by no means an exhaustive list of Functional Patterns outcomes. 
+        This library simply helps you filter and find results — by condition, body part, age, and gender — so you can see FP is for everyone!
+      </div>
     </header>
-
-    <div id="alert" class="alert"></div>
 
     <section class="card filters">
       <div class="row">
@@ -96,7 +112,6 @@
         <div class="group span4 actions">
           <button id="resetBtn" class="btn">Reset filters</button>
           <input type="file" id="filePicker" accept=".csv,text/csv" style="display:none" />
-          <button id="loadCsvBtn" class="btn" title="Load a CSV if the site can't find data.csv">Load CSV</button>
           <div class="right"></div>
           <label class="muted">Rows per page</label>
           <select id="pageSize" class="size">
@@ -113,7 +128,7 @@
         <thead>
           <tr>
             <th data-key="gender">Gender <span class="sort">⇅</span></th>
-            <th data-key="age" data-type="num">Age <span class="sort">⇅</span></th>
+            <th data-key="age" data-type="num-null-last">Age <span class="sort">⇅</span></th>
             <th>Caption</th>
             <th>Post</th>
           </tr>
@@ -128,154 +143,297 @@
           <button id="nextBtn" class="btn">Next</button>
         </div>
       </div>
+      <div class="site-note">
+        <em>Passion project by <strong>Michael Vincent</strong>.</em> Age, gender, condition, and body-part metadata were pieced together with the help of AI; errors may be present.
+      </div>
     </section>
   </div>
 
-  <div id="backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal">
-      <header>
-        <h3 id="modalTitle">Instagram Preview</h3>
-        <div style="margin-left:auto"></div>
-        <button id="closeModal" class="btn small">Close</button>
-      </header>
-      <div class="content">
-        <div class="embed-pane">
-          <strong>Live preview</strong>
-          <div id="embedHost" class="live-embed"></div>
-        </div>
-        <div class="embed-pane">
-          <strong>Copy-paste embed (iframe)</strong>
-          <textarea id="iframeCode" class="code" readonly></textarea>
-          <button id="copyIframe" class="btn small">Copy iframe</button>
-          <strong>Alternative embed (blockquote)</strong>
-          <textarea id="blockquoteCode" class="code" readonly></textarea>
-          <button id="copyBlockquote" class="btn small">Copy blockquote</button>
-          <p class="muted">Note: Instagram often blocks plain iframes. The official blockquote method usually works best.</p>
-        </div>
-      </div>
-      <footer>
-        <span class="muted">Press ESC or click Close to exit preview.</span>
-      </footer>
-    </div>
-  </div>
-
   <script>
-    const parseNum = (v) => { const n = Number(String(v).trim()); return Number.isFinite(n) ? n : null; };
-    const splitTags = (s) => { if (!s) return []; return String(s).split(/[;,]/).map(t => t.trim().toLowerCase()).filter(Boolean); };
-    function inAgeBin(age, bin) { if (!bin) return true; const n = parseNum(age); if (n == null) return false; const [lo, hi] = bin.split('-').map(Number); return n >= lo && n <= hi; }
-    function deriveEmbedInfo(row) {
-      let kind = "p"; let code = (row['shortcode'] || "").toString().trim();
-      if (!code && row._post) { const m = row._post.match(/instagram\.com\/(p|reel|tv)\/([^\/]+)/i); if (m) { kind = m[1].toLowerCase(); code = m[2]; } }
-      const pageUrl = row._post || (code ? `https://www.instagram.com/${kind}/${code}/` : ""); const embedUrl = code ? `https://www.instagram.com/${kind}/${code}/embed` : "";
-      return { kind, code, pageUrl, embedUrl };
+    // --- utilities
+    const parseNum = (v) => {
+      const n = Number(String(v).trim());
+      return Number.isFinite(n) ? n : null;
+    };
+    const splitTags = (s) => {
+      if (!s) return [];
+      return String(s).split(/[;,]/).map(t => t.trim().toLowerCase()).filter(Boolean);
+    };
+    function inAgeBin(age, bin) {
+      if (!bin) return true;
+      const n = parseNum(age);
+      if (n == null) return false;
+      const [lo, hi] = bin.split('-').map(Number);
+      return n >= lo && n <= hi;
+    }
+    function shuffle(arr) {
+      // Fisher–Yates
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
     }
 
-    let rawRows = []; let viewRows = []; let currentSort = { key: 'age', dir: 'desc', type: 'num' }; let page = 1; let pageSize = 25;
+    // --- state
+    let rawRows = [];
+    let viewRows = [];
+    // Initial: random order (no explicit sort key). When Reset, we randomize again.
+    let currentSort = { key: null, dir: 'asc', type: 'random' };
+    let page = 1;
+    let pageSize = 25;
 
-    const alertBox = document.getElementById('alert'); const loadCsvBtn = document.getElementById('loadCsvBtn'); const filePicker = document.getElementById('filePicker');
-    const genderSelect = document.getElementById('genderSelect'); const ageSelect = document.getElementById('ageSelect'); const bodySelect = document.getElementById('bodySelect'); const conditionsSelect = document.getElementById('conditionsSelect');
-    const searchInput = document.getElementById('searchInput'); const resetBtn = document.getElementById('resetBtn'); const pageSizeSel = document.getElementById('pageSize');
-    const tableBody = document.querySelector('#resultsTable tbody'); const counter = document.getElementById('counter'); const prevBtn = document.getElementById('prevBtn'); const nextBtn = document.getElementById('nextBtn'); const pageInfo = document.getElementById('pageInfo');
-    const backdrop = document.getElementById('backdrop'); const closeModal = document.getElementById('closeModal'); const embedHost = document.getElementById('embedHost');
-    const iframeCode = document.getElementById('iframeCode'); const blockquoteCode = document.getElementById('blockquoteCode'); const copyIframe = document.getElementById('copyIframe'); const copyBlockquote = document.getElementById('copyBlockquote');
+    // --- DOM
+    const loadCsvBtn = document.getElementById('loadCsvBtn');
+    const filePicker = document.getElementById('filePicker');
+    const genderSelect = document.getElementById('genderSelect');
+    const ageSelect = document.getElementById('ageSelect');
+    const bodySelect = document.getElementById('bodySelect');
+    const conditionsSelect = document.getElementById('conditionsSelect');
+    const searchInput = document.getElementById('searchInput');
+    const resetBtn = document.getElementById('resetBtn');
+    const pageSizeSel = document.getElementById('pageSize');
+    const tableBody = document.querySelector('#resultsTable tbody');
+    const counter = document.getElementById('counter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
 
-    function ensureEmbedScriptLoaded(cb) {
-      if (window.instgrm && window.instgrm.Embeds) { cb(); return; }
-      const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
-      if (!existing) { const s = document.createElement('script'); s.src = "https://www.instagram.com/embed.js"; s.async = true; s.onload = cb; document.head.appendChild(s); }
-      else { setTimeout(cb, 200); }
-    }
-
-    const candidatePaths = ['data.csv','./data.csv','output_with_tags_v2.csv','./output_with_tags_v2.csv','data/data.csv','./data/data.csv','/data.csv'];
-    function showAlert(html) { alertBox.innerHTML = html; alertBox.classList.add('show'); }
-    function hideAlert() { alertBox.classList.remove('show'); alertBox.innerHTML = ''; }
+    // ---- CSV LOADING with fallbacks ----
+    const candidatePaths = [
+      'data.csv', './data.csv',
+      'output_with_tags_v2.csv', './output_with_tags_v2.csv',
+      'data/data.csv', './data/data.csv', '/data.csv'
+    ];
 
     function loadCsvFromPath(pathIdx = 0) {
-      if (pathIdx >= candidatePaths.length) { showAlert(`Could not find a CSV at <code>data.csv</code> (or fallback names). <br/><strong>Fix:</strong> make sure <code>data.csv</code> is deployed next to <code>index.html</code>.<br/><em>Or</em> click <strong>Load CSV</strong> and choose a file from your computer.`); return; }
+      if (pathIdx >= candidatePaths.length) {
+        console.warn('CSV not found at expected paths.');
+        return;
+      }
       const path = candidatePaths[pathIdx];
-      Papa.parse(path, { download:true, header:true, skipEmptyLines:true,
-        complete: (res) => { if (!res.data || !res.data.length) { loadCsvFromPath(pathIdx+1); return; } console.log('Loaded CSV from', path, 'rows=', res.data.length); hideAlert(); onCsvLoaded(res.data); },
-        error: () => { loadCsvFromPath(pathIdx+1); }
+      Papa.parse(path, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: (res) => {
+          if (!res.data || !res.data.length) {
+            loadCsvFromPath(pathIdx + 1);
+            return;
+          }
+          onCsvLoaded(res.data);
+        },
+        error: () => {
+          loadCsvFromPath(pathIdx + 1);
+        }
       });
     }
 
     function onCsvLoaded(rows) {
       rawRows = rows.map(r => {
         const gender = (r['gender'] || '').toString().trim().toLowerCase();
-        const age = parseNum(r['age']); const conds = splitTags(r['condition']); const bodies = splitTags(r['body_part']);
-        const postUrl = r['post_url'] && r['post_url'].trim() ? r['post_url'].trim() : (r['shortcode'] ? `https://www.instagram.com/p/${r['shortcode'].trim()}/` : '');
-        const username = r['username'] || ''; const caption = r['caption'] || '';
-        return { ...r, _gender: gender || (r['gender'] == null || r['gender'] === '' ? 'unknown' : ''), _age: age, _conds: new Set(conds), _bodies: new Set(bodies), _post: postUrl, _username: username.toString(), _caption: caption.toString() };
+        const age = parseNum(r['age']);
+        const conds = splitTags(r['condition']);
+        const bodies = splitTags(r['body_part']);
+        const postUrl = r['post_url'] && r['post_url'].trim() ? r['post_url'].trim() :
+                        (r['shortcode'] ? `https://www.instagram.com/p/${r['shortcode'].trim()}/` : '');
+        const username = r['username'] || '';
+        const caption = r['caption'] || '';
+        return {
+          ...r,
+          _gender: gender || (r['gender'] == null || r['gender'] === '' ? 'unknown' : ''),
+          _age: age,
+          _conds: new Set(conds),
+          _bodies: new Set(bodies),
+          _post: postUrl,
+          _username: username.toString(),
+          _caption: caption.toString()
+        };
       });
 
-      const condSet = new Set(); const bodySet = new Set();
+      // Build options from data
+      const condSet = new Set();
+      const bodySet = new Set();
       rawRows.forEach(r => { r._conds.forEach(c => condSet.add(c)); r._bodies.forEach(b => bodySet.add(b)); });
-      const condOptions = Array.from(condSet).sort(); const bodyOptions = Array.from(bodySet).sort();
-      bodySelect.innerHTML = '<option value="">All</option>'; conditionsSelect.innerHTML = '<option value="">All</option>';
-      bodyOptions.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; bodySelect.appendChild(o); });
-      condOptions.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; conditionsSelect.appendChild(o); });
+      const condOptions = Array.from(condSet).sort();
+      const bodyOptions = Array.from(bodySet).sort();
 
-      attachHandlers(); applyFiltersAndRender(); showAlert(`<span class="ok">CSV loaded.</span> Rows: ${rawRows.length}.`); setTimeout(hideAlert, 2000);
+      // Render select options
+      bodySelect.innerHTML = '<option value="">All</option>';
+      conditionsSelect.innerHTML = '<option value="">All</option>';
+      bodyOptions.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt;
+        o.textContent = opt;
+        bodySelect.appendChild(o);
+      });
+      condOptions.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt;
+        o.textContent = opt;
+        conditionsSelect.appendChild(o);
+      });
+
+      attachHandlers();
+      applyFiltersAndRender();
     }
 
+    // Load initial CSV
     loadCsvFromPath(0);
+    // Manual CSV load
     loadCsvBtn.addEventListener('click', () => filePicker.click());
-    filePicker.addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return;
-      Papa.parse(file, { header:true, skipEmptyLines:true,
-        complete: (res) => { if (!res.data || !res.data.length) { showAlert('Selected file seems empty.'); return; } hideAlert(); onCsvLoaded(res.data); },
-        error: (err) => { showAlert('Could not read file: ' + err); }
+    filePicker.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      Papa.parse(file, {
+        header: true, skipEmptyLines: true,
+        complete: (res) => {
+          if (!res.data || !res.data.length) return;
+          onCsvLoaded(res.data);
+        }
       });
     });
 
+    // --- event handlers
     function attachHandlers() {
-      genderSelect.addEventListener('change', onFilterChange); ageSelect.addEventListener('change', onFilterChange);
-      bodySelect.addEventListener('change', onFilterChange); conditionsSelect.addEventListener('change', onFilterChange);
-      searchInput.addEventListener('input', onFilterChange); pageSizeSel.addEventListener('change', (e) => { pageSize = Number(e.target.value); page = 1; render(); });
-      resetBtn.addEventListener('click', () => { genderSelect.value = ''; ageSelect.value = ''; bodySelect.value = ''; conditionsSelect.value = ''; searchInput.value = ''; page = 1; currentSort = { key: 'age', dir: 'desc', type: 'num' }; applyFiltersAndRender(); });
-      document.querySelectorAll('th[data-key]').forEach(th => { th.addEventListener('click', () => { const key = th.getAttribute('data-key'); const type = th.getAttribute('data-type') || 'text'; if (currentSort.key === key) { currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc'; } else { currentSort = { key, dir: 'asc', type }; } render(); }); });
-      prevBtn.addEventListener('click', () => { if (page > 1) { page--; render(); } }); nextBtn.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(viewRows.length / pageSize)); if (page < totalPages) { page++; render(); } });
+      genderSelect.addEventListener('change', onFilterChange);
+      ageSelect.addEventListener('change', onFilterChange);
+      bodySelect.addEventListener('change', onFilterChange);
+      conditionsSelect.addEventListener('change', onFilterChange);
+      searchInput.addEventListener('input', onFilterChange);
+      pageSizeSel.addEventListener('change', (e) => {
+        pageSize = Number(e.target.value);
+        page = 1;
+        render();
+      });
+      resetBtn.addEventListener('click', () => {
+        genderSelect.value = '';
+        ageSelect.value = '';
+        bodySelect.value = '';
+        conditionsSelect.value = '';
+        searchInput.value = '';
+        page = 1;
+        currentSort = { key: null, dir: 'asc', type: 'random' }; // re-randomize on reset
+        applyFiltersAndRender();
+      });
+
+      // Table sorting (gender + age clickable)
+      document.querySelectorAll('th[data-key]').forEach(th => {
+        th.addEventListener('click', () => {
+          const key = th.getAttribute('data-key');
+          const type = th.getAttribute('data-type') || 'text';
+          if (currentSort.key === key) {
+            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            currentSort.type = type;
+          } else {
+            currentSort = { key, dir: 'asc', type };
+          }
+          render();
+        });
+      });
     }
 
     let filterTimer = null;
-    function onFilterChange() { if (filterTimer) clearTimeout(filterTimer); filterTimer = setTimeout(() => { page = 1; applyFiltersAndRender(); }, 80); }
+    function onFilterChange() {
+      if (filterTimer) clearTimeout(filterTimer);
+      filterTimer = setTimeout(() => {
+        page = 1;
+        applyFiltersAndRender();
+      }, 80);
+    }
 
     function applyFiltersAndRender() {
-      const g = genderSelect.value; const a = ageSelect.value; const b = bodySelect.value; const c = conditionsSelect.value; const q = searchInput.value.trim().toLowerCase();
+      const g = genderSelect.value;
+      const a = ageSelect.value;
+      const b = bodySelect.value;
+      const c = conditionsSelect.value;
+      const q = searchInput.value.trim().toLowerCase();
+
       viewRows = rawRows.filter(r => {
-        if (g) { const rg = r._gender || (r['gender'] ? r['gender'].toString().toLowerCase() : ''); if (g === 'unknown') { if (rg !== 'unknown') return false; } else if (rg !== g) { return false; } }
-        if (!inAgeBin(r._age, a)) return false; if (b && !r._bodies.has(b)) return false; if (c && !r._conds.has(c)) return false;
-        if (q) { const hay = (r._caption + ' ' + (r._username || '') + ' ' + (r['condition'] || '') + ' ' + (r['body_part'] || '')).toLowerCase(); if (!hay.includes(q)) return false; } return true;
+        // gender
+        if (g) {
+          const rg = r._gender || (r['gender'] ? r['gender'].toString().toLowerCase() : '');
+          if (g === 'unknown') {
+            if (rg !== 'unknown') return false;
+          } else if (rg !== g) {
+            return false;
+          }
+        }
+        // age
+        if (!inAgeBin(r._age, a)) return false;
+
+        // body
+        if (b && !r._bodies.has(b)) return false;
+
+        // condition (single)
+        if (c && !r._conds.has(c)) return false;
+
+        // text search
+        if (q) {
+          const hay = (r._caption + ' ' + (r._username || '') + ' ' + (r['condition'] || '') + ' ' + (r['body_part'] || '')).toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+
+        return true;
       });
+
       render();
     }
 
-    function compare(a, b, type, dir) { const mul = dir === 'asc' ? 1 : -1; if (type === 'num') { const na = a == null ? -Infinity : a; const nb = b == null ? -Infinity : b; return (na - nb) * mul; } else { const sa = (a ?? '').toString().toLowerCase(); const sb = (b ?? '').toString().toLowerCase(); return sa.localeCompare(sb) * mul; } }
+    function compare(a, b, type, dir) {
+      const mul = dir === 'asc' ? 1 : -1;
+      if (type === 'num-null-last') {
+        const va = (a == null || Number.isNaN(a)) ? Number.POSITIVE_INFINITY : a;
+        const vb = (b == null || Number.isNaN(b)) ? Number.POSITIVE_INFINITY : b;
+        return (va - vb) * mul;
+      } else if (type === 'num') {
+        const na = a == null ? 0 : a;
+        const nb = b == null ? 0 : b;
+        return (na - nb) * mul;
+      } else {
+        const sa = (a ?? '').toString().toLowerCase();
+        const sb = (b ?? '').toString().toLowerCase();
+        return sa.localeCompare(sb) * mul;
+      }
+    }
 
     function render() {
-      const { key, dir, type } = currentSort; const k = key === 'age' ? '_age' : key; viewRows.sort((ra, rb) => compare(ra[k], rb[k], type, dir));
-      const total = viewRows.length; counter.textContent = total.toLocaleString(); const totalPages = Math.max(1, Math.ceil(total / pageSize)); if (page > totalPages) page = totalPages;
-      const start = (page - 1) * pageSize; const end = start + pageSize; const pageRows = viewRows.slice(start, end);
-      tableBody.innerHTML = pageRows.map((r) => {
-        const cap = (r._caption || '').replace(/</g,'&lt;').replace(/>/g,'&gt;'); const link = r._post ? `<a class="post-link" href="${r._post}" target="_blank" rel="noopener">View</a>` : '';
-        const gender = (r._gender === 'unknown' || !r._gender) ? '<span class="muted">—</span>' : r._gender; const age = (r._age == null) ? '<span class="muted">—</span>' : r._age;
-        const { pageUrl, embedUrl } = deriveEmbedInfo(r); const previewBtn = pageUrl ? `<button class="btn small preview-btn" data-page="${pageUrl}" data-embed="${embedUrl}">Preview</button>` : '';
-        return `<tr><td>${gender}</td><td>${age}</td><td class="caption">${cap}</td><td>${link}${previewBtn ? ' ' + previewBtn : ''}</td></tr>`;
-      }).join('');
-      pageInfo.textContent = `Page ${page} / ${totalPages}`;
-      tableBody.querySelectorAll('.preview-btn').forEach(btn => { btn.addEventListener('click', () => { const page = btn.getAttribute('data-page'); const embed = btn.getAttribute('data-embed'); openPreview(page, embed); }); });
-    }
+      // sort or randomize
+      if (!currentSort.key || currentSort.type === 'random') {
+        // randomize order for initial render / reset
+        viewRows = shuffle(viewRows.slice());
+      } else {
+        const { key, dir, type } = currentSort;
+        const k = key === 'age' ? '_age' : key;
+        viewRows.sort((ra, rb) => compare(ra[k], rb[k], type, dir));
+      }
 
-    function openPreview(pageUrl, embedUrl) {
-      iframeCode.value = `<iframe src="${embedUrl}" width="400" height="600" frameborder="0" scrolling="no" allowtransparency="true"></iframe>`;
-      blockquoteCode.value = `<blockquote class="instagram-media" data-instgrm-permalink="${pageUrl}" data-instgrm-version="14"></blockquote>\n<script async src="https://www.instagram.com/embed.js"><\/script>`;
-      embedHost.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${pageUrl}" data-instgrm-version="14"></blockquote>`;
-      ensureEmbedScriptLoaded(() => { try { if (window.instgrm && window.instgrm.Embeds) { window.instgrm.Embeds.process(); } } catch (e) { console.warn("Instagram embed processing failed", e); } });
-      backdrop.classList.add('show'); backdrop.setAttribute('aria-hidden', 'false');
+      // paginate
+      const total = viewRows.length;
+      counter.textContent = total.toLocaleString();
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
+      if (page > totalPages) page = totalPages;
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize;
+      const pageRows = viewRows.slice(start, end);
+
+      // render rows
+      tableBody.innerHTML = pageRows.map(r => {
+        const cap = (r._caption || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const link = r._post ? `<a class="post-link" href="${r._post}" target="_blank" rel="noopener">View</a>` : '';
+        const gender = (r._gender === 'unknown' || !r._gender) ? '<span class="muted">—</span>' : r._gender;
+        const age = (r._age == null) ? '<span class="muted">—</span>' : r._age;
+
+        return `<tr>
+          <td>${gender}</td>
+          <td>${age}</td>
+          <td class="caption">${cap}</td>
+          <td>${link}</td>
+        </tr>`;
+      }).join('');
+
+      pageInfo.textContent = `Page ${page} / ${totalPages}`;
     }
-    function hideModal() { embedHost.innerHTML = ""; backdrop.classList.remove('show'); backdrop.setAttribute('aria-hidden', 'true'); }
-    document.getElementById('closeModal').addEventListener('click', hideModal);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideModal(); });
-    document.getElementById('backdrop').addEventListener('click', (e) => { if (e.target === document.getElementById('backdrop')) hideModal(); });
   </script>
 </body>
 </html>
