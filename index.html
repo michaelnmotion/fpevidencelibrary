@@ -34,22 +34,28 @@
     tbody tr:hover { background:#0e1418; }
     .muted { color:var(--muted); }
     .caption { max-width:720px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
-    .post-link { display:inline-block; padding:6px 10px; background:#0f1820; border:1px solid #15242b; border-radius:10px; }
+    .post-link { display:inline-block; padding:6px 10px; background:#0f1820; border:1px solid #15242b; border-radius:10px; text-align:center; width:100%; }
     .post-link:hover { background:#0f1c26; }
     .footer { display:flex; align-items:center; gap:8px; color:var(--muted); padding:12px; }
     .counter { font-weight:600; color:#d8e6ed; }
     .pag { display:flex; gap:8px; align-items:center; margin-left:auto; }
     .pag .btn { padding:6px 10px; }
     .size { width:auto; }
-    .site-note { color:var(--muted); font-size:12px; margin-top:18px; line-height:1.5; }
-    .site-note strong { color:#cfe6ee; font-weight:600; }
+
+    /* Actual footer */
+    .site-footer { border-top:1px solid var(--border); margin-top:22px; color:var(--muted); font-size:12px; }
+    .site-footer p { margin:14px 0; line-height:1.55; }
+
     /* Mobile tweaks */
     @media (max-width: 768px) {
-      table { min-width: 520px; } /* reduce min width */
-      .caption { -webkit-line-clamp: 6; }
+      table { min-width: unset; width:100%; table-layout: fixed; } /* no horizontal scroll */
+      .caption { -webkit-line-clamp: 4; } /* clip caption to keep Post visible */
       /* hide Gender (col 1) + Age (col 2) on mobile */
       th:nth-child(1), td:nth-child(1),
       th:nth-child(2), td:nth-child(2) { display:none; }
+      /* fix widths so Post button is always visible */
+      th:nth-child(3), td:nth-child(3) { width:auto; }
+      th:nth-child(4), td:nth-child(4) { width:92px; }
     }
   </style>
 
@@ -58,11 +64,11 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Functional Patterns | Evidence </h1>
+      <h1>Functional Patterns Evidence</h1>
       <div class="kicker">Results Library</div>
       <div class="sub">
-        Results are scraped from the <strong>fp.evidence</strong> page. This is by no means an exhaustive list of Functional Patterns outcomes. 
-        This library simply helps you filter and find results — by condition, body part, age, and gender — so you can see FP is for everyone!
+        Results are scraped from the <a href="https://www.instagram.com/fp.evidence/" target="_blank" rel="noopener"><strong>@fp.evidence</strong></a> page. This is by no means an exhaustive list of Functional Patterns outcomes. 
+        This library helps you filter and find results — by condition, body part, age, and gender — so you can see FP is for everyone.
       </div>
     </header>
 
@@ -111,9 +117,6 @@
 
         <div class="group span4 actions">
           <button id="resetBtn" class="btn">Reset filters</button>
-          <input type="file" id="filePicker" accept=".csv,text/csv" style="display:none" />
-          <button id="loadCsvBtn" class="btn" title="Load a CSV if the site can't find data.csv">Search</button>
-          <div class="right"></div>
           <label class="muted">Rows per page</label>
           <select id="pageSize" class="size">
             <option value="25" selected>25</option>
@@ -144,11 +147,14 @@
           <button id="nextBtn" class="btn">Next</button>
         </div>
       </div>
-      <div class="site-note">
-        <em>Passion project by <strong>Michael Vincent</strong>.</em> Age, gender, condition, and body-part metadata were pieced together with the help of AI; errors may be present.
-      </div>
     </section>
   </div>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p><em>Passion project by <strong>Michael Vincent</strong>.</em> Age, gender, condition, and body‑part metadata were pieced together with the help of AI; errors may be present.</p>
+    </div>
+  </footer>
 
   <script>
     // --- utilities
@@ -185,8 +191,6 @@
     let pageSize = 25;
 
     // --- DOM
-    const loadCsvBtn = document.getElementById('loadCsvBtn');
-    const filePicker = document.getElementById('filePicker');
     const genderSelect = document.getElementById('genderSelect');
     const ageSelect = document.getElementById('ageSelect');
     const bodySelect = document.getElementById('bodySelect');
@@ -279,21 +283,8 @@
       applyFiltersAndRender();
     }
 
-    // Load initial CSV
+    // Load initial CSV automatically on page load
     loadCsvFromPath(0);
-    // Manual CSV load
-    loadCsvBtn.addEventListener('click', () => filePicker.click());
-    filePicker.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      Papa.parse(file, {
-        header: true, skipEmptyLines: true,
-        complete: (res) => {
-          if (!res.data || !res.data.length) return;
-          onCsvLoaded(res.data);
-        }
-      });
-    });
 
     // --- event handlers
     function attachHandlers() {
@@ -421,7 +412,7 @@
       // render rows
       tableBody.innerHTML = pageRows.map(r => {
         const cap = (r._caption || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const link = r._post ? `<a class="post-link" href="${r._post}" target="_blank" rel="noopener">View</a>` : '';
+        const link = r._post ? `<a class="post-link" href="${r._post}" target="_blank" rel="noopener">View</a>` : '<span class="muted">—</span>';
         const gender = (r._gender === 'unknown' || !r._gender) ? '<span class="muted">—</span>' : r._gender;
         const age = (r._age == null) ? '<span class="muted">—</span>' : r._age;
 
@@ -434,6 +425,12 @@
       }).join('');
 
       pageInfo.textContent = `Page ${page} / ${totalPages}`;
+
+      // Prev/Next enable state
+      prevBtn.disabled = page <= 1;
+      nextBtn.disabled = page >= totalPages;
+      prevBtn.onclick = () => { if (page > 1) { page--; render(); } };
+      nextBtn.onclick = () => { if (page < totalPages) { page++; render(); } };
     }
   </script>
 </body>
