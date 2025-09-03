@@ -53,13 +53,13 @@
     .modal header h3 { margin: 0; font-size: 16px; }
     .modal .content { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; overflow: auto; }
     .embed-pane { display: flex; flex-direction: column; gap: 8px; }
-    .live-embed { background: #0b1013; border: 1px solid #1a2a31; border-radius: 10px; padding: 8px; min-height: 620px; }
+    iframe { background: #000; width: 100%; min-height: 600px; border: 0; }
     textarea.code { width: 100%; min-height: 140px; background: #0b1013; color: #e6eef2; border: 1px solid #1a2a31; border-radius: 10px; padding: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; }
     .modal footer { padding: 10px 12px; border-top: 1px solid #152027; display: flex; gap: 8px; }
     .modal-backdrop.show { display: flex; }
   </style>
 
-  <!-- Official Instagram embed processor (for blockquote method) -->
+  <!-- (Optional) Instagram embed script for blockquote method -->
   <script async src="https://www.instagram.com/embed.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
@@ -67,7 +67,7 @@
   <div class="wrap">
     <header>
       <h1>Functional Patterns</h1>
-      <div class="sub">Filter results by <strong>condition</strong>, <strong>age</strong>, <strong>gender</strong>, and <strong>body part</strong>. Click a result to preview or open the post.</div>
+      <div class="sub">Filter real-world results by <strong>condition</strong>, <strong>age</strong>, <strong>gender</strong>, and <strong>body part</strong>. Click a result to view or preview the original Instagram post.</div>
     </header>
 
     <section class="card filters">
@@ -160,7 +160,7 @@
       <div class="content">
         <div class="embed-pane">
           <strong>Live preview</strong>
-          <div id="embedHost" class="live-embed"></div>
+          <iframe id="embedFrame" title="Instagram embed"></iframe>
         </div>
         <div class="embed-pane">
           <strong>Copy-paste embed (iframe)</strong>
@@ -169,7 +169,7 @@
           <strong>Alternative embed (blockquote)</strong>
           <textarea id="blockquoteCode" class="code" readonly></textarea>
           <button id="copyBlockquote" class="btn small">Copy blockquote</button>
-          <p class="muted">Note: Instagram often blocks plain iframes. The official blockquote method usually works best.</p>
+          <p class="muted">Note: Some posts may restrict embedding; if the iframe fails, try the blockquote method.</p>
         </div>
       </div>
       <footer>
@@ -233,27 +233,11 @@
 
     const backdrop = document.getElementById('backdrop');
     const closeModal = document.getElementById('closeModal');
-    const embedHost = document.getElementById('embedHost');
+    const embedFrame = document.getElementById('embedFrame');
     const iframeCode = document.getElementById('iframeCode');
     const blockquoteCode = document.getElementById('blockquoteCode');
     const copyIframe = document.getElementById('copyIframe');
     const copyBlockquote = document.getElementById('copyBlockquote');
-
-    // Ensure embed script exists (if user navigated before it loaded)
-    function ensureEmbedScriptLoaded(cb) {
-      if (window.instgrm && window.instgrm.Embeds) { cb(); return; }
-      const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
-      if (!existing) {
-        const s = document.createElement('script');
-        s.src = "https://www.instagram.com/embed.js";
-        s.async = true;
-        s.onload = cb;
-        document.head.appendChild(s);
-      } else {
-        // give it a moment
-        setTimeout(cb, 200);
-      }
-    }
 
     // --- load CSV
     Papa.parse('data.csv', {
@@ -436,13 +420,13 @@
       const end = start + pageSize;
       const pageRows = viewRows.slice(start, end);
 
-      tableBody.innerHTML = pageRows.map((r) => {
+      tableBody.innerHTML = pageRows.map((r, idx) => {
         const cap = (r._caption || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const link = r._post ? `<a class="post-link" href="${r._post}" target="_blank" rel="noopener">View</a>` : '';
         const gender = (r._gender === 'unknown' || !r._gender) ? '<span class="muted">—</span>' : r._gender;
         const age = (r._age == null) ? '<span class="muted">—</span>' : r._age;
         const { pageUrl, embedUrl } = deriveEmbedInfo(r);
-        const previewBtn = pageUrl ? `<button class="btn small preview-btn" data-page="${pageUrl}" data-embed="${embedUrl}">Preview</button>` : '';
+        const previewBtn = embedUrl ? `<button class="btn small preview-btn" data-embed="${embedUrl}" data-page="${pageUrl}">Preview</button>` : '';
 
         return `<tr>
           <td>${gender}</td>
@@ -457,36 +441,25 @@
       // hook preview buttons
       tableBody.querySelectorAll('.preview-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const page = btn.getAttribute('data-page');
           const embed = btn.getAttribute('data-embed');
-          openPreview(page, embed);
+          const page = btn.getAttribute('data-page');
+          openPreview(embed, page);
         });
       });
     }
 
-    function openPreview(pageUrl, embedUrl) {
-      // Set embed code textareas regardless
+    function openPreview(embedUrl, pageUrl) {
+      embedFrame.src = embedUrl;
       iframeCode.value = `<iframe src="${embedUrl}" width="400" height="600" frameborder="0" scrolling="no" allowtransparency="true"></iframe>`;
       blockquoteCode.value = `<blockquote class="instagram-media" data-instgrm-permalink="${pageUrl}" data-instgrm-version="14"></blockquote>\n<script async src="https://www.instagram.com/embed.js"></script>`;
-
-      // Render live preview via blockquote (official method)
-      embedHost.innerHTML = `<blockquote class="instagram-media" data-instgrm-permalink="${pageUrl}" data-instgrm-version="14"></blockquote>`;
-      ensureEmbedScriptLoaded(() => {
-        try {
-          if (window.instgrm && window.instgrm.Embeds) {
-            window.instgrm.Embeds.process();
-          }
-        } catch (e) {
-          console.warn("Instagram embed processing failed", e);
-        }
-      });
-
       backdrop.classList.add('show');
       backdrop.setAttribute('aria-hidden', 'false');
+      // Try to re-process blockquotes in case someone pastes into the page later
+      if (window.instgrm && window.instgrm.Embeds) { try { window.instgrm.Embeds.process(); } catch(e){} }
     }
 
     function hideModal() {
-      embedHost.innerHTML = "";
+      embedFrame.src = "";
       backdrop.classList.remove('show');
       backdrop.setAttribute('aria-hidden', 'true');
     }
