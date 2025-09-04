@@ -4,9 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Functional Patterns | Results Library</title>
-  <meta name="description" content="Filter Functional Patterns results by condition, body part, age, and gender to find posts like yours." />
+  <meta name="description" content="Filter Functional Patterns results by condition, body part, age, and gender to preview Instagram posts like yours." />
   <style>
-    :root { --bg:#0b0f10; --card:#11181c; --muted:#8a98a0; --text:#e6eef2; --accent:#06b6d4; --border:#0e1316; }
+    :root { --bg:#0b0f10; --card:#11181c; --muted:#8aa0a9; --text:#e6eef2; --accent:#06b6d4; --border:#0f1417; }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
     a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
@@ -15,51 +15,94 @@
     h1 { font-size:28px; margin:0; letter-spacing:.2px; }
     .kicker { color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.14em; margin-top:6px; font-size:12px; }
     .sub { color:var(--muted); margin-top:10px; line-height:1.55; }
+
+    /* Filters (compact / sleek) */
     .filters { display:grid; grid-template-columns:1fr; gap:12px; margin:16px 0; }
     .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:14px; }
-    .row { display:grid; grid-template-columns:1fr; gap:12px; }
-    .group { display:flex; flex-direction:column; gap:8px; }
+    .row { display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:12px; }
+    .group { display:flex; flex-direction:column; gap:8px; grid-column: span 3 / span 3; }
+    .group.span6 { grid-column: span 6 / span 6; }
+    .group.span12 { grid-column: 1 / -1; }
     .label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
     select, input[type="text"] { width:100%; padding:10px 12px; border-radius:12px; background:#0e1418; color:var(--text); border:1px solid #142027; outline:none; }
     select:focus, input[type="text"]:focus { border-color:var(--accent); }
     .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
     .btn { appearance:none; border:1px solid #1b2a30; background:#0e1418; color:var(--text); border-radius:12px; padding:8px 10px; cursor:pointer; font-size:13px; }
     .btn:hover { border-color:var(--accent); }
-    .table-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:auto; }
-    table { width:100%; border-collapse:collapse; font-size:14px; min-width:820px; }
-    thead { background:#0f161a; position:sticky; top:0; z-index:2; }
-    th, td { text-align:left; padding:12px; vertical-align:top; border-bottom:1px solid var(--border); }
-    th { font-weight:600; color:#b9c9d2; cursor:pointer; user-select:none; }
-    th .sort { font-size:10px; color:var(--muted); margin-left:6px; }
-    tbody tr:hover { background:#0e1418; }
-    .muted { color:var(--muted); }
-    .caption { max-width:720px; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; }
-    .post-link { display:inline-block; padding:6px 10px; background:#0f1820; border:1px solid #15242b; border-radius:10px; text-align:center; width:100%; }
-    .post-link:hover { background:#0f1c26; }
-    .footer { display:flex; align-items:center; gap:8px; color:var(--muted); padding:12px; }
-    .counter { font-weight:600; color:#d8e6ed; }
-    .pag { display:flex; gap:8px; align-items:center; margin-left:auto; }
-    .pag .btn { padding:6px 10px; }
     .size { width:auto; }
 
-    /* Actual footer */
+    
+    /* --- Compact density tweaks --- */
+    .card { padding:10px; border-radius:14px; }
+    .filters { position: sticky; top:0; z-index:60; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .row { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:8px; align-items:center; }
+    .group { gap:4px; }
+    .label { font-size:10px; letter-spacing:.12em; opacity:.8; }
+    select, input[type="text"] { padding:8px 10px; border-radius:10px; font-size:13px; min-height:36px; }
+    .actions { justify-content:flex-end; gap:6px; }
+    .btn { padding:6px 10px; border-radius:10px; font-size:12px; }
+    .size { padding:6px 8px; min-height:32px; }
+    header { margin-bottom:10px; }
+    .kicker { margin-top:4px; }
+    .sub { margin-top:8px; }
+    @media (min-width: 769px){
+      .group.span6 { grid-column: span 2 / span 2; }
+      .group.span12 { grid-column: 1 / -1; }
+    }
+    @media (max-width: 768px){
+      .actions .label { display:none; }
+    }
+
+    /* Grid of embeds */
+    .grid-wrap { background:var(--card); border:1px solid var(--border); border-radius:16px; }
+    .grid-header { display:flex; gap:8px; align-items:center; padding:12px; border-bottom:1px solid var(--border); color:var(--muted); }
+    .counter { font-weight:600; color:#d8e6ed; }
+
+    .grid { padding:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; }
+    .embed-card { background:#0e1418; border:1px solid #162129; border-radius:14px; padding:10px; }
+    .embed-card blockquote { width:100% !important; margin:0 auto !important; min-height:380px; }
+    .pag { display:flex; gap:8px; align-items:center; padding:12px; border-top:1px solid var(--border); }
+    .pag .btn { padding:6px 10px; }
+
+    /* Footer */
     .site-footer { border-top:1px solid var(--border); margin-top:22px; color:var(--muted); font-size:12px; }
     .site-footer p { margin:14px 0; line-height:1.55; }
 
-    /* Mobile tweaks */
-    @media (max-width: 768px) {
-      table { min-width: unset; width:100%; table-layout: fixed; } /* no horizontal scroll */
-      .caption { -webkit-line-clamp: 4; } /* clip caption to keep Post visible */
-      /* hide Gender (col 1) + Age (col 2) on mobile */
-      th:nth-child(1), td:nth-child(1),
-      th:nth-child(2), td:nth-child(2) { display:none; }
-      /* fix widths so Post button is always visible */
-      th:nth-child(3), td:nth-child(3) { width:auto; }
-      th:nth-child(4), td:nth-child(4) { width:92px; }
+    /* Mobile */
+    /* Mobile (two-column filter grid) */
+    @media (max-width: 768px){
+      /* two columns for the filter groups */
+      .row { 
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        align-items: center;
+      }
+
+      /* each group is one column by default */
+      .group { grid-column: auto; }
+
+      /* search + actions span both columns */
+      .group.span6,
+      .group.span12 { grid-column: 1 / -1; }
+
+      /* keep labels compact in the actions row */
+      .actions .label { display: none; }
+
+      /* embeds stay single-column on mobile */
+      .grid { grid-template-columns: 1fr; }
+      .embed-card blockquote { min-height: 360px; }
+    }
+
+    /* Extra-narrow safety: stack to one column below ~380px */
+    @media (max-width: 380px){
+      .row { grid-template-columns: 1fr; }
     }
   </style>
 
+  <!-- PapaParse for CSV loading -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- Instagram embed script (must be after the content is on the page; we'll call process() after rendering) -->
+  <script async src="https://www.instagram.com/embed.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -67,11 +110,12 @@
       <h1>Functional Patterns Evidence</h1>
       <div class="kicker">Results Library</div>
       <div class="sub">
-        Results are scraped from the <a href="https://www.instagram.com/fp.evidence/" target="_blank" rel="noopener"><strong>@fp.evidence</strong></a> page. This is by no means an exhaustive list of Functional Patterns outcomes. 
-        This library helps you filter and find results — by condition, body part, age, and gender — so you can see FP is for everyone.
+        Results are scraped from the <a href="https://www.instagram.com/fp.evidence/" target="_blank" rel="noopener"><strong>@fp.evidence</strong></a> page. This is by no means an exhaustive list of Functional Patterns outcomes.
+        Use the filters below to preview matching Instagram posts — by condition, body part, age, and gender.
       </div>
     </header>
 
+    <!-- Filters -->
     <section class="card filters">
       <div class="row">
         <div class="group">
@@ -109,43 +153,33 @@
             <option value="">All</option>
           </select>
         </div>
-
-        <div class="group span4">
+        <div class="group span6">
           <div class="label">Search (caption, user)</div>
           <input type="text" id="searchInput" placeholder="Type to search…" />
         </div>
-
-        <div class="group span4 actions">
-          <button id="resetBtn" class="btn">Reset filters</button>
-          <label class="muted">Rows per page</label>
+        <div class="group span12 actions">
+          <button id="resetBtn" class="btn">Reset</button>
+          <label class="label" style="text-transform:none; letter-spacing:0;">Per page</label>
           <select id="pageSize" class="size">
-            <option value="25" selected>25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
+            <option value="6">6</option>
+            <option value="9" selected>9</option>
+            <option value="12">12</option>
+            <option value="18">18</option>
           </select>
         </div>
       </div>
     </section>
 
-    <section class="table-wrap">
-      <table id="resultsTable">
-        <thead>
-          <tr>
-            <th data-key="gender">Gender <span class="sort">⇅</span></th>
-            <th data-key="age" data-type="num-null-last">Age <span class="sort">⇅</span></th>
-            <th>Caption</th>
-            <th>Post</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="footer">
-        <div><span id="counter" class="counter">0</span> shown</div>
-        <div class="pag">
-          <button id="prevBtn" class="btn">Prev</button>
-          <span id="pageInfo" class="muted">Page 1 / 1</span>
-          <button id="nextBtn" class="btn">Next</button>
-        </div>
+    <!-- Grid of Instagram embeds -->
+    <section class="grid-wrap">
+      <div class="grid-header">
+        <div><span id="counter" class="counter">0</span> matching posts</div>
+        <div id="pageInfo" class="sub" style="margin-left:auto;">Page 1 / 1</div>
+      </div>
+      <div id="grid" class="grid" aria-live="polite"></div>
+      <div class="pag">
+        <button id="prevBtn" class="btn">Prev</button>
+        <button id="nextBtn" class="btn">Next</button>
       </div>
     </section>
   </div>
@@ -157,7 +191,7 @@
   </footer>
 
   <script>
-    // --- utilities
+    // ------ Utilities ------
     const parseNum = (v) => {
       const n = Number(String(v).trim());
       return Number.isFinite(n) ? n : null;
@@ -174,7 +208,6 @@
       return n >= lo && n <= hi;
     }
     function shuffle(arr) {
-      // Fisher–Yates
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -182,15 +215,13 @@
       return arr;
     }
 
-    // --- state
+    // ------ State ------
     let rawRows = [];
     let viewRows = [];
-    // Initial: random order (no explicit sort key). When Reset, we randomize again.
-    let currentSort = { key: null, dir: 'asc', type: 'random' };
     let page = 1;
-    let pageSize = 25;
+    let pageSize = 9;
 
-    // --- DOM
+    // ------ DOM refs ------
     const genderSelect = document.getElementById('genderSelect');
     const ageSelect = document.getElementById('ageSelect');
     const bodySelect = document.getElementById('bodySelect');
@@ -198,13 +229,13 @@
     const searchInput = document.getElementById('searchInput');
     const resetBtn = document.getElementById('resetBtn');
     const pageSizeSel = document.getElementById('pageSize');
-    const tableBody = document.querySelector('#resultsTable tbody');
     const counter = document.getElementById('counter');
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const pageInfo = document.getElementById('pageInfo');
+    const grid = document.getElementById('grid');
 
-    // ---- CSV LOADING with fallbacks ----
+    // ------ CSV loading with fallbacks ------
     const candidatePaths = [
       'data.csv', './data.csv',
       'output_with_tags_v2.csv', './output_with_tags_v2.csv',
@@ -222,15 +253,10 @@
         header: true,
         skipEmptyLines: true,
         complete: (res) => {
-          if (!res.data || !res.data.length) {
-            loadCsvFromPath(pathIdx + 1);
-            return;
-          }
+          if (!res.data || !res.data.length) { loadCsvFromPath(pathIdx + 1); return; }
           onCsvLoaded(res.data);
         },
-        error: () => {
-          loadCsvFromPath(pathIdx + 1);
-        }
+        error: () => loadCsvFromPath(pathIdx + 1)
       });
     }
 
@@ -256,48 +282,32 @@
         };
       });
 
-      // Build options from data
+      // Build select options from data
       const condSet = new Set();
       const bodySet = new Set();
       rawRows.forEach(r => { r._conds.forEach(c => condSet.add(c)); r._bodies.forEach(b => bodySet.add(b)); });
       const condOptions = Array.from(condSet).sort();
       const bodyOptions = Array.from(bodySet).sort();
 
-      // Render select options
       bodySelect.innerHTML = '<option value="">All</option>';
       conditionsSelect.innerHTML = '<option value="">All</option>';
-      bodyOptions.forEach(opt => {
-        const o = document.createElement('option');
-        o.value = opt;
-        o.textContent = opt;
-        bodySelect.appendChild(o);
-      });
-      condOptions.forEach(opt => {
-        const o = document.createElement('option');
-        o.value = opt;
-        o.textContent = opt;
-        conditionsSelect.appendChild(o);
-      });
+      bodyOptions.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; bodySelect.appendChild(o); });
+      condOptions.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.textContent = opt; conditionsSelect.appendChild(o); });
 
       attachHandlers();
       applyFiltersAndRender();
     }
 
-    // Load initial CSV automatically on page load
     loadCsvFromPath(0);
 
-    // --- event handlers
+    // ------ Handlers ------
     function attachHandlers() {
       genderSelect.addEventListener('change', onFilterChange);
       ageSelect.addEventListener('change', onFilterChange);
       bodySelect.addEventListener('change', onFilterChange);
       conditionsSelect.addEventListener('change', onFilterChange);
       searchInput.addEventListener('input', onFilterChange);
-      pageSizeSel.addEventListener('change', (e) => {
-        pageSize = Number(e.target.value);
-        page = 1;
-        render();
-      });
+      pageSizeSel.addEventListener('change', (e) => { pageSize = Number(e.target.value); page = 1; render(); });
       resetBtn.addEventListener('click', () => {
         genderSelect.value = '';
         ageSelect.value = '';
@@ -305,33 +315,16 @@
         conditionsSelect.value = '';
         searchInput.value = '';
         page = 1;
-        currentSort = { key: null, dir: 'asc', type: 'random' }; // re-randomize on reset
         applyFiltersAndRender();
       });
-
-      // Table sorting (gender + age clickable)
-      document.querySelectorAll('th[data-key]').forEach(th => {
-        th.addEventListener('click', () => {
-          const key = th.getAttribute('data-key');
-          const type = th.getAttribute('data-type') || 'text';
-          if (currentSort.key === key) {
-            currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
-            currentSort.type = type;
-          } else {
-            currentSort = { key, dir: 'asc', type };
-          }
-          render();
-        });
-      });
+      prevBtn.addEventListener('click', () => { if (page > 1) { page--; render(); } });
+      nextBtn.addEventListener('click', () => { const totalPages = Math.max(1, Math.ceil(viewRows.length / pageSize)); if (page < totalPages) { page++; render(); } });
     }
 
     let filterTimer = null;
     function onFilterChange() {
       if (filterTimer) clearTimeout(filterTimer);
-      filterTimer = setTimeout(() => {
-        page = 1;
-        applyFiltersAndRender();
-      }, 80);
+      filterTimer = setTimeout(() => { page = 1; applyFiltersAndRender(); }, 80);
     }
 
     function applyFiltersAndRender() {
@@ -342,65 +335,27 @@
       const q = searchInput.value.trim().toLowerCase();
 
       viewRows = rawRows.filter(r => {
-        // gender
         if (g) {
           const rg = r._gender || (r['gender'] ? r['gender'].toString().toLowerCase() : '');
-          if (g === 'unknown') {
-            if (rg !== 'unknown') return false;
-          } else if (rg !== g) {
-            return false;
-          }
+          if (g === 'unknown') { if (rg !== 'unknown') return false; }
+          else if (rg !== g) { return false; }
         }
-        // age
         if (!inAgeBin(r._age, a)) return false;
-
-        // body
         if (b && !r._bodies.has(b)) return false;
-
-        // condition (single)
         if (c && !r._conds.has(c)) return false;
-
-        // text search
         if (q) {
           const hay = (r._caption + ' ' + (r._username || '') + ' ' + (r['condition'] || '') + ' ' + (r['body_part'] || '')).toLowerCase();
           if (!hay.includes(q)) return false;
         }
-
-        return true;
+        return r._post; // must have a post URL to embed
       });
 
+      // Randomize order for a fresh feel
+      viewRows = shuffle(viewRows.slice());
       render();
     }
 
-    function compare(a, b, type, dir) {
-      const mul = dir === 'asc' ? 1 : -1;
-      if (type === 'num-null-last') {
-        const va = (a == null || Number.isNaN(a)) ? Number.POSITIVE_INFINITY : a;
-        const vb = (b == null || Number.isNaN(b)) ? Number.POSITIVE_INFINITY : b;
-        return (va - vb) * mul;
-      } else if (type === 'num') {
-        const na = a == null ? 0 : a;
-        const nb = b == null ? 0 : b;
-        return (na - nb) * mul;
-      } else {
-        const sa = (a ?? '').toString().toLowerCase();
-        const sb = (b ?? '').toString().toLowerCase();
-        return sa.localeCompare(sb) * mul;
-      }
-    }
-
     function render() {
-      // sort or randomize
-      if (!currentSort.key || currentSort.type === 'random') {
-        // randomize order for initial render / reset
-        viewRows = shuffle(viewRows.slice());
-      } else {
-        const { key, dir, type } = currentSort;
-        const k = key === 'age' ? '_age' : key;
-        viewRows.sort((ra, rb) => compare(ra[k], rb[k], type, dir));
-      }
-
-      // paginate
       const total = viewRows.length;
       counter.textContent = total.toLocaleString();
       const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -409,28 +364,27 @@
       const end = start + pageSize;
       const pageRows = viewRows.slice(start, end);
 
-      // render rows
-      tableBody.innerHTML = pageRows.map(r => {
-        const cap = (r._caption || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        const link = r._post ? `<a class="post-link" href="${r._post}" target="_blank" rel="noopener">View</a>` : '<span class="muted">—</span>';
-        const gender = (r._gender === 'unknown' || !r._gender) ? '<span class="muted">—</span>' : r._gender;
-        const age = (r._age == null) ? '<span class="muted">—</span>' : r._age;
-
-        return `<tr>
-          <td>${gender}</td>
-          <td>${age}</td>
-          <td class="caption">${cap}</td>
-          <td>${link}</td>
-        </tr>`;
-      }).join('');
-
       pageInfo.textContent = `Page ${page} / ${totalPages}`;
-
-      // Prev/Next enable state
       prevBtn.disabled = page <= 1;
       nextBtn.disabled = page >= totalPages;
-      prevBtn.onclick = () => { if (page > 1) { page--; render(); } };
-      nextBtn.onclick = () => { if (page < totalPages) { page++; render(); } };
+
+      // Build embed HTML. Note: Instagram's embed script will convert blockquotes into iframes.
+      grid.innerHTML = pageRows.map(r => {
+        const url = r._post;
+        // Optional: include a minimal fallback link inside the blockquote for non-JS
+        return `
+          <div class="embed-card">
+            <blockquote class="instagram-media" data-instgrm-permalink="${url}" data-instgrm-version="14">
+              <a href="${url}" target="_blank" rel="noopener">View on Instagram</a>
+            </blockquote>
+          </div>
+        `;
+      }).join('');
+
+      // Ask Instagram to (re)process new embeds
+      if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === 'function') {
+        try { window.instgrm.Embeds.process(); } catch (e) { console.warn('instgrm process failed:', e); }
+      }
     }
   </script>
 </body>
